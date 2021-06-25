@@ -168,18 +168,12 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.DebugConfigurationProviderTriggerKind.Dynamic));
 
   let factory = new ZxdbDebugAdapterFactory();
-  context.subscriptions.push(
-      vscode.debug.registerDebugAdapterDescriptorFactory('zxdb', factory));
-  if ('dispose' in factory) {
-    context.subscriptions.push(factory);
-  }
+  context.subscriptions.push(vscode.Disposable.from(
+      vscode.debug.registerDebugAdapterDescriptorFactory('zxdb', factory)));
 
   let logger = new ZxdbDebugAdapterTrackerFactory();
-  context.subscriptions.push(
-      vscode.debug.registerDebugAdapterTrackerFactory('zxdb', logger));
-  if ('dispose' in logger) {
-    context.subscriptions.push(logger);
-  }
+  context.subscriptions.push(vscode.Disposable.from(
+      vscode.debug.registerDebugAdapterTrackerFactory('zxdb', logger)));
 }
 
 // This method is called when extension is deactivated.
