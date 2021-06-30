@@ -30,8 +30,11 @@ export function debug(message: string) {
   }
 }
 
-export function info(message: string) {
+export function info(message: string, show: boolean = false) {
   log('INFO', message);
+  if (show) {
+    vscode.window.showInformationMessage(message);
+  }
 }
 
 export function warn(message: string) {

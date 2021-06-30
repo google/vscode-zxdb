@@ -1,0 +1,50 @@
+{
+  // Hover to view descriptions of existing attributes.
+  "version": "0.2.0",
+  "configurations": [
+    // You can have multiple configurations as done below.
+    // These will be listed by the name field in the launch configuration dropdown.
+    // Use the launch configuration dropdown to select one of these before starting to debug.
+    {
+      "name": "Attach(zxdb) example",
+      "type": "zxdb",
+      "request": "attach",
+      "process": "archivist.cm"
+    },
+    {
+      "name": "Launch(zxdb) test",
+      "type": "zxdb",
+      "request": "launch",
+      "launchCommand": "fx shell i2cutil",
+      "process": "i2cutil"
+    },
+    {
+      "name": "Attach(zxdb) sysinfo",
+      "type": "zxdb",
+      "request": "attach",
+      "process": "sysinfo"
+    },
+    {
+      "name": "Launch(zxdb) example",
+      "type": "zxdb",
+      "request": "launch",
+      "launchCommand": "fx test hello-world-test",
+      "process": "hello-world-test"
+    },
+    // Input based ones are special. You need not update any field for these in the launch.json.
+    // During debugging each field is requested through a input box.
+    {
+      "name": "Launch(zxdb) input based",
+      "type": "zxdb",
+      "request": "launch",
+      "launchCommand": "${command:EnterLaunchCommand}",
+      "process": "${command:PickProcess}"
+    },
+    {
+      "name": "Attach(zxdb) input based",
+      "type": "zxdb",
+      "request": "attach",
+      "process": "${command:PickProcess}"
+    }
+  ]
+}
