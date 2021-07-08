@@ -16,156 +16,69 @@ import * as Net from 'net';
 import * as vscode from 'vscode';
 import {CancellationToken, DebugAdapterTracker, DebugAdapterTrackerFactory, DebugConfiguration, ProviderResult, WorkspaceFolder,} from 'vscode';
 import {DebugProtocol} from 'vscode-debugprotocol';
+
+import {DEFAULT_SERVER_PORT, ZxdbConsole} from './console';
 import * as log from './log';
 
-let terminal: vscode.Terminal|undefined;
-let terminalPID: number|undefined;
-
-const DEFAULT_ZXDB_COMMAND = 'fx debug -- --enable-debug-adapter';
-function createZxdbTerminal() {
-  if (terminal) {
-    destroyZxdbTerminal();
-  }
-  try {
-    terminal = vscode.window.createTerminal(`zxdb console`);
-    let command: string =
-        vscode.workspace.getConfiguration().get('zxdb.command') ??
-        DEFAULT_ZXDB_COMMAND;
-    terminal.sendText(command);
-    terminal.show(true);
-    terminal.processId.then((id) => {
-      terminalPID = id;
-      if (terminal) {
-        log.info(`${terminal.name} launched with pid ${terminalPID}`);
-      }
-    });
-  } catch (Error) {
-    vscode.window.showErrorMessage(Error);
-  }
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-const DEFAULT_ZXDB_TIMEOUT =
-    30000;  // 30 seconds. Taken from fx debug timeout of 10s + buffer time.
-async function waitForZxdbConsole() {
-  return new Promise<void>(async (resolve, reject) => {
-    // This method waits for the spawned zxdb console to be ready.
-    // We check this by connecting to the debug adapter server port.
-    // Once the connection succeeds, it means the server is ready.
-    // We disconnect and continue debugging.
-    let timeout: number =
-        vscode.workspace.getConfiguration().get('zxdb.timeout') ??
-        DEFAULT_ZXDB_TIMEOUT;
-    let socket: Net.Socket;
-    let connected = false;
-    let retry = true;
-    let connect = () => {
-      socket = new Net.Socket();
-      socket.connect(DEFAULT_SERVER_PORT, 'localhost');
-
-      socket.on('connect', () => {
-        connected = true;
-        log.info('zxdb console has started.');
-        socket.destroy();
-        resolve();
-      });
-
-      let retryConnect = async () => {
-        if (retry) {
-          socket.destroy();
-          await sleep(1000);
-          connect();
-        }
-      };
-
-      socket.on('error', (err) => {
-        log.debug('socket error - ' + err);
-        retryConnect();
-      });
-    };
-    connect();
-
-    setTimeout(() => {
-      retry = false;
-      if (socket) {
-        socket.destroy();
-      }
-      if (!connected) {
-        destroyZxdbTerminal();
-        log.info('Timeout starting zxdb console.');
-        reject('Timeout starting zxdb console.');
-      }
-    }, timeout);
-  });
-}
-
-function destroyZxdbTerminal() {
-  if (terminalPID) {
-    process.kill(-terminalPID);
-    terminalPID = undefined;
-  }
-  if (terminal) {
-    terminal.dispose();
-    terminal = undefined;
-  }
-}
+let console: ZxdbConsole;
 
 export function activate(context: vscode.ExtensionContext) {
   log.info('zxdb extension is now active!');
+  console = new ZxdbConsole();
+  context.subscriptions.push(
+      vscode.commands.registerCommand('extension.zxdb.TestCommand', () => {
+        log.info('Starting zxdb.command test', true);
+        console.createZxdbTerminal();
+        console.waitForZxdbConsole(10 * 60 * 1000)
+            .then(
+                value => {
+                  log.info('zxdb.command test successful!', true);
+                  console.destroyZxdbTerminal();
+                },
+                reason => {
+                  log.error('zxdb.command test failed');
+                });
+      }));
+
   context.subscriptions.push(vscode.commands.registerCommand(
       'extension.zxdb.pickProcess', (config) => {
+        let promptText: string = '';
+        if (config.request === 'launch') {
+          promptText =
+              'Launch(zxdb): Enter name of the process that will be launched.' +
+              ' Hint: For components, it\'s usually the component name.';
+        } else {
+          promptText = 'Attach(zxdb): Enter name of the process to debug.' +
+              ' The process should already be running or should be started separately.';
+        }
         // In future, add code to run ps and give a list of process to pick
         // from.
         return vscode.window.showInputBox({
-          placeHolder: 'Please enter the name of the process to attach to',
+          placeHolder: '(e.g. hello-world-test)',
           value: '',
+          prompt: promptText
         });
       }));
 
   context.subscriptions.push(vscode.commands.registerCommand(
       'extension.zxdb.enterLaunchCommand', (config) => {
         return vscode.window.showInputBox({
-          placeHolder:
-              'Please enter the command to launch the process from terminal (eg. fx shell ls)',
+          placeHolder: '(e.g. fx test hello-world-test)',
           value: '',
+          prompt:
+              'Launch(zxdb): Enter launch command. This will be run in the vscode terminal.'
         });
       }));
+
+
+  vscode.window.onDidCloseTerminal((t) => {
+    console.onDidCloseTerminal(t);
+  });
 
   // register a configuration provider for 'zxdb' debug type
   const provider = new ZxdbConfigurationProvider();
   context.subscriptions.push(
       vscode.debug.registerDebugConfigurationProvider('zxdb', provider));
-
-  // register a dynamic configuration provider for 'zxdb' debug type
-  // This is called when `zxdb..` is picked from dropdown of left panel `Run and
-  // Debug`
-  context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider(
-      'zxdb', {
-        provideDebugConfigurations(folder: WorkspaceFolder|undefined):
-            ProviderResult<DebugConfiguration[]> {
-              return [
-                {
-                  name: 'zxdb launch',
-                  request: 'launch',
-                  type: 'zxdb',
-                  process: '${command:PickProcess}',
-                  launchCommand: '${command:EnterLaunchCommand}',
-                },
-                {
-                  name: 'zxdb attach',
-                  request: 'attach',
-                  type: 'zxdb',
-                  process: '${command:PickProcess}',
-                },
-              ];
-            },
-      },
-      vscode.DebugConfigurationProviderTriggerKind.Dynamic));
 
   let factory = new ZxdbDebugAdapterFactory();
   context.subscriptions.push(vscode.Disposable.from(
@@ -187,10 +100,11 @@ class ZxdbConfigurationProvider implements vscode.DebugConfigurationProvider {
       token?: CancellationToken): ProviderResult<DebugConfiguration> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
-      config.type = 'zxdb';
-      config.request = 'attach';
-      config.name = 'zxdb attach process';
-      config.process = '${command:PickProcess}';
+      log.error(
+          'launch.json does not have any zxdb configuration. Initial configurations will be ' +
+          'added automatically, if not add it manually (Hint: Add Configuration -> zxdb...).\n' +
+          'Next, pick a configuration in the launch configuration dropdown to start debugging.');
+      return null;
     }
 
     if (config.request === 'attach') {
@@ -201,20 +115,19 @@ class ZxdbConfigurationProvider implements vscode.DebugConfigurationProvider {
           config.launchCommand + '"');
     } else {
       log.error('Unknown launch config');
+      return null;
     }
 
     return config;
   }
 }
-
-const DEFAULT_SERVER_PORT = 15678;
 class ZxdbDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
   createDebugAdapterDescriptor(_session: vscode.DebugSession):
       ProviderResult<vscode.DebugAdapterDescriptor> {
     // Start zxdb console and wait for it to be ready.
     // Then create a client to start debugging in vscode.
-    createZxdbTerminal();
-    return waitForZxdbConsole().then(() => {
+    console.createZxdbTerminal();
+    return console.waitForZxdbConsole().then(() => {
       log.info('Creating debug adapter client.');
       let client = new vscode.DebugAdapterServer(DEFAULT_SERVER_PORT);
       return client;
@@ -224,6 +137,8 @@ class ZxdbDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
 
 class ZxdbDebugAdapterTracker implements DebugAdapterTracker {
   ignoreError: boolean = false;
+  restart: boolean = false;
+  launchPID: number|undefined = undefined;
   constructor(private readonly session: vscode.DebugSession) {}
 
   private toString(data: DebugProtocol.Message|Error|DebugConfiguration) {
@@ -243,6 +158,16 @@ class ZxdbDebugAdapterTracker implements DebugAdapterTracker {
       // backend and hence debug adapter reports connection loss errors which
       // needs to be ignored. It might confuse users if these errors are shown.
       this.ignoreError = true;
+      if (request.arguments && request.arguments.restart) {
+        this.restart = request.arguments.restart;
+      }
+    } else if (request.command === 'runInTerminal') {
+      let response: DebugProtocol.RunInTerminalResponse = message;
+      if (response.body.shellProcessId) {
+        this.launchPID = getChildPID(response.body.shellProcessId);
+      } else if (response.body.processId) {
+        this.launchPID = response.body.processId;
+      }
     }
     log.debug(`Sent:\n${this.toString(message)}\n`);
   }
@@ -253,7 +178,11 @@ class ZxdbDebugAdapterTracker implements DebugAdapterTracker {
 
   public onWillStopSession() {
     log.info('Stopping debug Session.\n');
-    destroyZxdbTerminal();
+    if (!this.restart) {
+      console.destroyZxdbTerminal();
+    }
+    destroyZxdbLaunch(this.launchPID);
+    this.launchPID = undefined;
   }
 
   public onError(error: Error) {
@@ -281,5 +210,23 @@ export class ZxdbDebugAdapterTrackerFactory implements
   public createDebugAdapterTracker(session: vscode.DebugSession):
       ProviderResult<DebugAdapterTracker> {
     return new ZxdbDebugAdapterTracker(session);
+  }
+}
+
+// Methods to control launched process
+function getChildPID(pid: number): number|undefined {
+  let childPID = undefined;
+  if (process.platform !== 'win32') {
+    childPID =
+        Number(require('child_process').execSync(`pgrep -P ${pid}`) + '');
+    log.debug(`Child process ID: ${childPID}`);
+  }
+  return childPID;
+}
+
+function destroyZxdbLaunch(pid: number|undefined) {
+  if (pid) {
+    log.info(`zxdb launch (PID:${pid}) is destroyed.`);
+    process.kill(-pid, 2);  // SIGINT
   }
 }

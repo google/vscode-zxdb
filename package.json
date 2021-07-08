@@ -14,9 +14,12 @@
   "repository": {
     "url": "https://github.com/google/vscode-zxdb"
   },
+  "bugs": {
+    "url": "https://bugs.fuchsia.dev/p/fuchsia/issues/entry?components=Tools%3Ezxdb;cc=puneetha@google.com;"
+  },
   "activationEvents": [
     "onDebug",
-    "onDebugDynamicConfigurations:zxdb"
+    "onCommand:extension.zxdb.TestCommand"
   ],
   "main": "./out/extension.js",
   "icon": "images/zxdb-logo-128x128.png",
@@ -44,19 +47,19 @@
         "configurationAttributes": {
           "launch": {
             "required": [
-              "process",
-              "launchCommand"
+              "launchCommand",
+              "process"
             ],
             "properties": {
-              "process": {
-                "type": "string",
-                "description": "Name of the process to debug",
-                "default": "${command:PickProcess}"
-              },
               "launchCommand": {
                 "type": "string",
-                "description": "Command with arguments to launch the process",
+                "description": "Command to launch the debuggee, e.g., fx test hello-world-test",
                 "default": "${command:EnterLaunchCommand}"
+              },
+              "process": {
+                "type": "string",
+                "description": "Name of the process that will be launched by the command. For components, its usually the component name\ne.g, hello-world-test.\nPartial names are also valid e.g., hello-world.",
+                "default": "${command:PickProcess}"
               }
             }
           },
@@ -67,7 +70,7 @@
             "properties": {
               "process": {
                 "type": "string",
-                "description": "Name of the process to debug",
+                "description": "Name of the process to debug. For components, its usually the component name\ne.g., hello-world-test.\nPartial names are also valid e.g., hello-world.",
                 "default": "${command:PickProcess}"
               }
             }
@@ -75,39 +78,75 @@
         },
         "initialConfigurations": [
           {
-            "type": "zxdb",
-            "request": "attach",
-            "name": "zxdb attach process",
-            "process": "${command:PickProcess}"
-          },
-          {
+            "name": "Launch(zxdb) <TODO: give a custom name>",
             "type": "zxdb",
             "request": "launch",
-            "name": "zxdb launch process",
-            "process": "${command:PickProcess}",
-            "launchCommand": "${command:EnterLaunchCommand}"
+            "launchCommand": "<TODO: Add a shell command to launch debuggee e.g., fx test hello-world-test>",
+            "process": "<TODO: Debugging process name. For components, it's usually the component name. e.g., hello-world-test>"
           }
         ],
         "configurationSnippets": [
           {
-            "label": "zxdb: attach",
-            "description": "A new configuration for attaching to a process on target and start debugging. The process would have to be started seperately or should already be running on the target.",
+            "label": "zxdb: Launch",
+            "description": "Launch an executable on target.",
             "body": {
+              "name": "Launch(zxdb) <TODO: give a custom name>",
               "type": "zxdb",
-              "request": "attach",
-              "name": "zxdb attach process",
+              "request": "launch",
+              "launchCommand": "<TODO: update this e.g., fx test hello-world-test>",
+              "process": "<TODO: update this e.g., hello-world-test>"
+            }
+          },
+          {
+            "label": "zxdb: Launch (input based)",
+            "description": "Launch an executable on target. Input box will appear for launch command and process name while debugging.",
+            "body": {
+              "name": "Launch(zxdb) input based",
+              "type": "zxdb",
+              "request": "launch",
+              "launchCommand": "^\"\\${command:EnterLaunchCommand}\"",
               "process": "^\"\\${command:PickProcess}\""
             }
           },
           {
-            "label": "zxdb: launch",
-            "description": "A new configuration for launching a process on target and start debugging.",
+            "label": "zxdb: Launch example",
+            "description": "An example zxdb launch configuration.",
             "body": {
+              "name": "Launch(zxdb) example",
               "type": "zxdb",
               "request": "launch",
-              "name": "zxdb launch process",
-              "process": "^\"\\${command:PickProcess}\"",
-              "launchCommand": "^\"\\${command:EnterLaunchCommand}\""
+              "launchCommand": "fx test hello-world-test",
+              "process": "hello-world-test"
+            }
+          },
+          {
+            "label": "zxdb: Attach",
+            "description": "Attach to a process on target.",
+            "body": {
+              "name": "Attach(zxdb) <TODO: give a custom name>",
+              "type": "zxdb",
+              "request": "attach",
+              "process": "<TODO: update this e.g., hello-world-test>"
+            }
+          },
+          {
+            "label": "zxdb: Attach (input based)",
+            "description": "Attach to a process on target. Input box will appear for process name while debugging",
+            "body": {
+              "name": "Attach(zxdb) input based",
+              "type": "zxdb",
+              "request": "attach",
+              "process": "^\"\\${command:PickProcess}\""
+            }
+          },
+          {
+            "label": "zxdb: Attach example",
+            "description": "An example zxdb attach configuration.",
+            "body": {
+              "name": "Attach(zxdb) example",
+              "type": "zxdb",
+              "request": "attach",
+              "process": "archivist.cm"
             }
           }
         ],
@@ -124,22 +163,28 @@
           "scope": "window",
           "type": "boolean",
           "default": false,
-          "description": "Enable logging of additional debugging messages"
+          "description": "Enable logging of debug messages."
         },
         "zxdb.command": {
           "scope": "window",
           "type": "string",
           "default": "fx debug -- --enable-debug-adapter",
-          "description": "Terminal command to start zxdb console."
+          "description": "Command to start zxdb console. Make sure to include --enable-debug-adapter flag."
         },
         "zxdb.timeout": {
           "scope": "window",
           "type": "number",
           "default": 30000,
-          "description": "Timeout in ms for waiting on zxdb console to start."
+          "description": "Timeout in milliseconds for waiting on zxdb console to start."
         }
       }
-    }
+    },
+    "commands": [
+      {
+        "command": "extension.zxdb.TestCommand",
+        "title": "zxdb: Run zxdb.command"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
