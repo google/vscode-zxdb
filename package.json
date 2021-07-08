@@ -2,8 +2,8 @@
   "name": "zxdb",
   "displayName": "zxdb",
   "description": "Fuchsia debugger",
-  "version": "0.0.1",
-  "publisher": "puneetha",
+  "version": "0.0.2",
+  "publisher": "fuchsia-authors",
   "license": "Apache-2.0",
   "engines": {
     "vscode": "^1.48.0"
@@ -22,6 +22,7 @@
     "onCommand:extension.zxdb.TestCommand"
   ],
   "main": "./out/extension.js",
+  "icon": "images/zxdb-logo-128x128.png",
   "contributes": {
     "breakpoints": [
       {
