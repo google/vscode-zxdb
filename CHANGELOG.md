@@ -10,3 +10,7 @@ All notable changes to the "zxdb" extension will be documented in this file.
 ## [0.0.2]
 
 - Added logo
+
+## [1.0.0]
+
+- Marketplace release
