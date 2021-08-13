@@ -14,3 +14,7 @@ All notable changes to the "zxdb" extension will be documented in this file.
 ## [1.0.0]
 
 - Marketplace release
+
+## [1.0.1]
+
+- Trim process name to 32 characters. Update Readme.

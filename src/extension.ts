@@ -93,9 +93,10 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {}
 
 class ZxdbConfigurationProvider implements vscode.DebugConfigurationProvider {
+  maxFilterNameLength = 32;
   // This method is called just before launching debug session.
   // Final updates to debug configuration can be done here.
-  resolveDebugConfiguration(
+  resolveDebugConfigurationWithSubstitutedVariables(
       folder: WorkspaceFolder|undefined, config: DebugConfiguration,
       token?: CancellationToken): ProviderResult<DebugConfiguration> {
     // if launch.json is missing or empty
@@ -105,6 +106,13 @@ class ZxdbConfigurationProvider implements vscode.DebugConfigurationProvider {
           'added automatically, if not add it manually (Hint: Add Configuration -> zxdb...).\n' +
           'Next, pick a configuration in the launch configuration dropdown to start debugging.');
       return null;
+    }
+
+    if (config.process.length > this.maxFilterNameLength) {
+      config.process = config.process.substring(0, this.maxFilterNameLength);
+      log.warn(
+          'Process name too long. It will be trimmed to "' + config.process +
+          '"');
     }
 
     if (config.request === 'attach') {

@@ -4,6 +4,8 @@
 provides IDE based [zxdb](https://fuchsia.dev/fuchsia-src/development/debugger?hl=en) debugger
 support for developers working with the open source [Fuchsia](https://fuchsia.dev/) operating system.
 
+Note: This is not an officially supported Google product
+
 ## Features
 
 - One click debugging - Press **F5** to start debugging on Fuchsia devices.
@@ -25,6 +27,10 @@ support for developers working with the open source [Fuchsia](https://fuchsia.de
    [VS Code setup for Fuchsia](https://fuchsia.dev/fuchsia-src/development/editors/vscode?hl=en).
 
 ## Quick start
+
+- **Step 0:** Open VS Code application and install **zxdb** extension from marketplace
+  (Click **View** then **Extensions** and search for **zxdb**, select **zxdb** and click on
+  **install**).
 
 - **Step 1:** Make sure that the target device is running fuchsia and the package server
   (like `fx serve`) has started on the development host. Make sure to have installed the
