@@ -17,9 +17,9 @@ import * as vscode from 'vscode';
 import * as log from './log';
 
 
-export const DEFAULT_ZXDB_COMMAND = 'fx debug -- --enable-debug-adapter';
+export const DEFAULT_ZXDB_COMMAND = 'ffx debug connect -- --enable-debug-adapter';
 export const DEFAULT_ZXDB_TIMEOUT =
-    30000;  // 30 seconds. Taken from fx debug timeout of 10s + buffer time.
+    5000;  // 5 seconds. Usually "ffx debug connect" takes less than 1 second.
 export const DEFAULT_SERVER_PORT = 15678;
 type TimerCallback = () => void;
 
