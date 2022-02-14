@@ -3,9 +3,9 @@
 ### 1. Help me understand how this extension works.
 
 In a nutshell, the extension communicates with the zxdb console program using VS Code
-[Debug Adapter protocol](https://microsoft.github.io/debug-adapter-protocol/) on port 15678.
-When you launch the zxdb debug extension in VS Code, it opens a new VS Code terminal to launch
-the zxdb console by using `zxdb.command` settings (such as `fx debug`). The zxdb console is in turn
+[Debug Adapter protocol](https://microsoft.github.io/debug-adapter-protocol/) on port 15678.  When
+you launch the zxdb debug extension in VS Code, it opens a new VS Code terminal to launch the zxdb
+console by using `zxdb.command` settings (such as `ffx debug connect`). The zxdb console is in turn
 connected to a debug agent started on the target device. Once the zxdb console starts, if needed it
 launches the debuggee program in another VS Code terminal by using the launchCommand configuration
 (such as `fx test hello-world`). The extension connects VS Code debugger UI and the zxdb console by
@@ -13,13 +13,12 @@ forwarding debug configurations, events, exceptions, stacktraces, and process st
 
 ![This image shows an architectural overview of zxdb extension as described above.](images/zxdb-vscode-working.png)
 
-### 2. I do not use fx in my development workflow. Can I still use this extension?
+### 2. I do not use ffx in my development workflow. Can I still use this extension?
 
-**Yes**. The extension is configured by default to use `fx debug`. This can be changed by
+**Yes**. The extension is configured by default to use `ffx debug connect`. This can be changed by
 configuring `zxdb.command` settings as explained in [this](#6-how-to-change-zxdbcommand) section.
-There are no other dependencies on `fx`.
 
-### 3. fx and/or zxdb does not work in the VS Code terminal.
+### 3. ffx and/or zxdb does not work in the VS Code terminal.
 
 VS Code shell might have to be configured - See
 [VS Code shell config](https://code.visualstudio.com/docs/editor/integrated-terminal) and
@@ -64,8 +63,8 @@ Follow these steps to ensure that zxdb launches in VS Code without any errors.
 
 `zxdb.command` can be set to any of the following -
 
-1.  By default it is set to `fx debug -- --enable-debug-adapter`.
-1.  If you are not using fx, you will have to replace it with a shell script containing
+1.  By default it is set to `ffx debug connect -- --enable-debug-adapter`.
+1.  If you are not using ffx, you will have to replace it with a shell script containing
     commands to launch zxdb and debug_agent.
 
     For example, run this in a shell:

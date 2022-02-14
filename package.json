@@ -168,7 +168,7 @@
         "zxdb.command": {
           "scope": "window",
           "type": "string",
-          "default": "fx debug -- --enable-debug-adapter",
+          "default": "ffx debug connect -- --enable-debug-adapter",
           "description": "Command to start zxdb console. Make sure to include --enable-debug-adapter flag."
         },
         "zxdb.timeout": {
