@@ -18,3 +18,8 @@ All notable changes to the "zxdb" extension will be documented in this file.
 ## [1.0.1]
 
 - Trim process name to 32 characters. Update Readme.
+
+## [1.0.2]
+
+- Use "ffx debug" instead of "fx debug" which supports out-of-tree debugging.
+- Update the dependency.
