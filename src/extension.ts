@@ -93,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {}
 
 class ZxdbConfigurationProvider implements vscode.DebugConfigurationProvider {
-  maxFilterNameLength = 32;
+  maxFilterNameLength = 31;
   // This method is called just before launching debug session.
   // Final updates to debug configuration can be done here.
   resolveDebugConfigurationWithSubstitutedVariables(
