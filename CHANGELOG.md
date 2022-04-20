@@ -23,3 +23,8 @@ All notable changes to the "zxdb" extension will be documented in this file.
 
 - Use "ffx debug" instead of "fx debug" which supports out-of-tree debugging.
 - Update the dependency.
+
+## [1.0.2]
+
+- Trim process name to 31 characters because NUL is the last character in
+  Zircon.
