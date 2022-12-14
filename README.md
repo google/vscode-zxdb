@@ -1,5 +1,9 @@
 # zxdb for VS Code
 
+Note: This extension is merged into the [Fuchsia
+extension](https://marketplace.visualstudio.com/items?itemName=fuchsia-authors.vscode-fuchsia) and
+will be deprecated shortly. Please use the Fuchsia extension for debugger support.
+
 [The VS Code zxdb extension](https://marketplace.visualstudio.com/items?itemName=fuchsia-authors.zxdb)
 provides IDE based [zxdb](https://fuchsia.dev/fuchsia-src/development/debugger?hl=en) debugger
 support for developers working with the open source [Fuchsia](https://fuchsia.dev/) operating system.

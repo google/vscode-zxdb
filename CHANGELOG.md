@@ -24,7 +24,11 @@ All notable changes to the "zxdb" extension will be documented in this file.
 - Use "ffx debug" instead of "fx debug" which supports out-of-tree debugging.
 - Update the dependency.
 
-## [1.0.2]
+## [1.0.3]
 
 - Trim process name to 31 characters because NUL is the last character in
   Zircon.
+
+## [1.0.4]
+
+- Add deprecation warning. Please use [Fuchsia extension](https://marketplace.visualstudio.com/items?itemName=fuchsia-authors.vscode-fuchsia) instead.

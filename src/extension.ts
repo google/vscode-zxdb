@@ -24,6 +24,10 @@ let console: ZxdbConsole;
 
 export function activate(context: vscode.ExtensionContext) {
   log.info('zxdb extension is now active!');
+
+  const deprecationNotice = new vscode.MarkdownString('zxdb extension is deprecated. Please use the [Fuchsia extension](https://marketplace.visualstudio.com/items?itemName=fuchsia-authors.vscode-fuchsia).');
+  log.warn(deprecationNotice.value);
+
   console = new ZxdbConsole();
   context.subscriptions.push(
       vscode.commands.registerCommand('extension.zxdb.TestCommand', () => {
